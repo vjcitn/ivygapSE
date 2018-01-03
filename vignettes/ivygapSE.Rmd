@@ -25,6 +25,7 @@ library(DT)
 library(grid)
 library(png)
 library(ggplot2)
+library(limma)
 })
 ```
 ```{r chk}
@@ -170,7 +171,8 @@ lapply(split(spec,basis), function(x)sort(table(x),decreasing=TRUE))
 We have used `r Biocpkg("limma")` to test for differential
 expression among samples identified as `reference histology` in
 classes `CT`, `CT-mvp`, `CT-pan`, `IT`, and `LE`.  The
-resulting mean expression estimates (FPKM scale) are obtained
+resulting mean expression estimates (FPKM scale) 
+and moderated test statistics are obtained
 as follows:
 ```{r lklim, cache=TRUE}
 ebout = getRefLimma()
@@ -183,3 +185,63 @@ options(digits=3)
 limma::topTable(ebout, 2)
 options(digits=odig) # revert
 ```
+
+### Differential expression by molecular subtype
+
+We can bind the molecular subtype information from the tumor
+details to the expression sample annotation as follows:
+```{r bindmol}
+moltype = tumorDetails(ivySE)$molecular_subtype
+names(moltype) = tumorDetails(ivySE)$tumor_name
+moltype[nchar(moltype)==0] = "missing"
+ivySE$moltype = factor(moltype[ivySE$tumor_name])
+```
+
+We will confine attention to samples annotated as "reference histology"
+and compute the duplicate correlation for modeling the
+effect of molecular subtype in the available samples.
+
+```{r setdup, cache=TRUE}
+library(limma)
+refex = ivySE[, grep("reference", ivySE$structure_acronym)]
+refmat = assay(refex)
+tydes = model.matrix(~moltype, data=as.data.frame(colData(refex)))
+ok = which(apply(tydes,2,sum)>0)  # some subtypes don't have ref histo samples
+tydes = tydes[,ok]
+block = factor(refex$tumor_id)
+dd = duplicateCorrelation(refmat, tydes, block=block)
+f2 = lmFit(refmat, tydes, correlation=dd$consensus)
+ef2 = eBayes(f2)
+colnames(tydes)
+topTable(ef2,2)
+```
+
+### Classification of structural character
+
+We assess the capacity of the expression measures to
+discriminate the structural type (CT, CT-mvp, CT-pan, LE, IT)
+using the random forests algorithm.  Features used have
+interquartile range (IQR) over all relevant samples exceeding the
+median IQR over all genes.
+
+```{r lkrf,fig=TRUE}
+refex = ivySE[, grep("reference", ivySE$structure_acronym)]
+refex$struc = factor(refex$structure_acronym)
+iqrs = rowIQRs(assay(refex))
+inds = which(iqrs>quantile(iqrs,.5))
+set.seed(1234)
+rf1 = randomForest(x=t(assay(refex[inds,])), 
+        y=refex$struc, mtry=30, importance=TRUE) 
+rf1
+varImpPlot(rf1)
+```
+
+# Next steps
+
+Patel et al. Science 2014 (344(6190): 1396–1401) present single cell RNA-seq
+for 430 cells from 5 tumors of different molecular subtypes.  It would
+be interesting to use signature of structural origin to see whether
+intra-tumor variation can be resolved into components coherent with
+the five-element typology.  It would also be of interest to assess whether
+structural type signatures are associated with any signatures of drug
+sensitivity in relevant cell lines.
