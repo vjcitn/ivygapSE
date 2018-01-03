@@ -7,9 +7,6 @@ vignette: >
   %\VignetteIndexEntry{ivygapSE -- SummarizedExperiment for Ivy-GAP}
   %\VignetteEncoding{UTF-8}
 output:
-  BiocStyle::pdf_document:
-    toc: yes
-    number_sections: yes
   BiocStyle::html_document:
     highlight: pygments
     number_sections: yes
@@ -24,6 +21,10 @@ CSV files from the Ivy-GAP project have been assembled into a SummarizedExperime
 suppressPackageStartupMessages({
 library(SummarizedExperiment)
 library(ivygapSE)
+library(DT)
+library(grid)
+library(png)
+library(ggplot2)
 })
 ```
 ```{r chk}
@@ -38,18 +39,44 @@ a character vector (builder) with the R code for creating (much of) the Summariz
 and two tables of tumor-specific and
 block-specific information.
 
-# Summary information
+# Background on the ivyGlimpse app
+
+The ivyGlimpse app is a rapid prototype of a browser-based
+interface to salient features of the data.  The
+most current code is maintained in the Bioconductor
+ivygapSE package, but a public version of the app
+may be visited at [shinyapps.io](https://vjcitn.shinyapps.io/ivyglimpse/).
+
+The ivygapSE
+package will evolve, based in part on associations
+observed through the use of this app.  Briefly, the main
+visualization of the app is a scatterplot of user-selected
+tumor image features.  All contributions, based
+on tumor sub-blocks (that have varying multiplicities per
+tumor block and donor) are assembled
+together without regard for source; interactive aspects of
+the display allow the user to see which donor contributes
+each point.  
+
+Strata can be formed interactively by brushing
+over the scatterplot; after the brushing event, the survival
+times of donors contributing selected points are compared
+to donors all of whose contributions lie outside the selection.
+Expression data are also stratified in this way and gene-specific
+boxplot sets (for user-specified gene sets) are produced for each stratum.
+
+# Summary information on the underlying data
 
 The number of RNA-seq samples is `r ncol(ivySE)`.  The FPKM matrix has dimensions
 ```{r lkd}
 dim(ivySE)
 ```
 
-There are 42 different donors.
+There are 42 different tumor donors.
 ```{r lkse}
 length(unique(metadata(ivySE)$tumorDetails$donor_id))
 ```
-However, only 37 donors contributed tumor RNA:
+However, only 37 donors contributed tumor RNA that was sequenced:
 ```{r lkcon}
 sum(metadata(ivySE)$tumorDetails$tumor_name %in% ivySE$tumor_name)
 ```
@@ -57,38 +84,102 @@ sum(metadata(ivySE)$tumorDetails$tumor_name %in% ivySE$tumor_name)
 subd = metadata(ivySE)$subBlockDetails
 dsub = dim(subd)
 ```
-The subBlockDetails metadata (`r dsub[1]` x `r dsub[2]`)  includes feature quantifications.  The
-names of the quantification fields and their interpretation are
-```{r featanno,echo=FALSE}
-featanno = c("normalized_area_le"   =
-"Leading Edge (LE)",
-"normalized_area_lehbv" =
-"Hyperplastic blood vessels in leading edge (LEhbv)",
-"normalized_area_it"   =
-"Infiltrating Tumor (IT)",
-"normalized_area_ithbv" =
-"Hyperplastic blood vessels in infiltrating tumor (IThbv)",
-"normalized_area_ct"   =
-"Cellular Tumor (CT)",
-"normalized_area_ctpnz" =
-"Perinecrotic zone (CTpnz)",
-"normalized_area_cthbv" =
-"Hyperplastic blood vessels in cellular tumor (CThbv)",
-"normalized_area_ctpnn" =
-"Pseudopalisading cells but no visible necrosis (CTpnn)",
-"normalized_area_ctpan" =
-"Pseudopalisading cells around necrosis (CTpan)",
-"normalized_area_ctmvp" =
-"Microvascular proliferation (CTmvp)",
-"normalized_area_ctne" =
-"Necrosis (CTne)")
-featanno
+
+Features of images from sub-blocks were quantified according to the following terminology for
+anatomical characteristics.  Not all images provided information
+on all attributes.
+
+```{r lkonto,image=TRUE,echo=FALSE}
+nomenclat()
 ```
 
-# Exploring with the app
+# Additional details
 
-The `ivyGlimpse` function starts a shiny app.  Use the mouse to select
-image features to scatterplot, and then select a region of the scatterplot
-to stratify the blocks into two groups.  Once the selection is made,
-the survival profiles of the groups are plotted, and expression
-patterns for genes in selected pathways can be compared.
+We have used information in the
+[IvyGAP technical white paper](http://help.brain-map.org/display/glioblastoma/Documentation?preview=/8028197/8454231/IvyOverview.pdf) to
+spell out additional background on the data underlying the app and
+SummarizedExperiment.
+
+## Basic experimental design layout
+
+There are six substudies contributing data in a partly
+sequential design.
+
+```{r lkk,echo=FALSE,fig=TRUE}
+designOverview()
+```
+
+## Tumor-level details
+
+The following table has one record per tumor (N=`r nrow(tumorDetails(ivySE))`).
+
+```{r lkdttum,echo=FALSE}
+datatable(tumorDetails(ivySE), options=list(lengthMenu=c(3,5,10,50,100)))
+```
+
+## Sub-block-level details
+
+The following table has one record per sub-block (N=`r nrow(subBlockDetails(ivySE))`).
+```{r lkdts,echo=FALSE}
+datatable(subBlockDetails(ivySE), options=list(lengthMenu=c(3,5,10,50,    100)))
+```
+
+## Details on RNA-seq samples
+
+The complete annotation on RNA-seq samples is provided in `colData(ivySE)`.  The
+table follows here:
+
+```{r lkcdd,echo=FALSE}
+datatable(as.data.frame(colData(ivySE)), options=list(lengthMenu=c(3,5,10,50,100)))
+```
+
+### Key RNA-seq subsets
+
+#### Subsets of design origin
+
+The sub-blocks arose from a number of measurement objectives.
+
+```{r lksbbbb}
+sb = subBlockDetails(ivySE)
+table(sb$study_name)
+```
+
+#### Subsets based on structure
+
+We use the `structure_acronym` variable to assess the composition of
+sources in the RNA-seq collection.
+
+```{r lksa,fig=TRUE}
+struc = as.character(colData(ivySE)$structure_acronym)
+spls = strsplit(struc, "-")
+basis = vapply(spls, function(x) x[1], character(1))
+spec = vapply(spls, function(x) x[2], character(1))
+table(basis, exclude=NULL)
+barplot(table(basis))
+```
+
+Each of the major structural types contributes multiple samples from
+specific objectives.  
+
+```{r lktab}
+lapply(split(spec,basis), function(x)sort(table(x),decreasing=TRUE))
+```
+
+### A simple differential expression study
+
+We have used `r Biocpkg("limma")` to test for differential
+expression among samples identified as `reference histology` in
+classes `CT`, `CT-mvp`, `CT-pan`, `IT`, and `LE`.  The
+resulting mean expression estimates (FPKM scale) are obtained
+as follows:
+```{r lklim, cache=TRUE}
+ebout = getRefLimma()
+```
+The ten genes that are most significantly differentially
+expressed between conditions CT and CT-mvp are found as follows:
+```{r lknnn}
+odig = options()$digits
+options(digits=3)
+limma::topTable(ebout, 2)
+options(digits=odig) # revert
+```

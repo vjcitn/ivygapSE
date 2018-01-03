@@ -46,3 +46,50 @@
 #' data(ivySE)
 #' names(metadata(ivySE))
 "ivySE"
+
+#' helper functions for data access
+#' @rdname helper
+#' @param se SummarizedExperiment instance, intended to work for ivySE in this package
+#' @aliases tumorDetails
+#' @export
+tumorDetails = function(se) metadata(se)$tumorDetails
+#' @rdname helper
+#' @aliases subBlockDetails
+#' @export
+subBlockDetails = function(se) metadata(se)$subBlockDetails
+#' @rdname helper
+#' @aliases vocab
+#' @export
+vocab = function() {
+data.frame(
+ abbr = c("PAN", "PNN", "NE", "BV", "HBV", "MVP", "EN",
+   "CT", "CTpnz", "HE", "FOLD", "SPA"),
+ def = c("pseudopalisading cells around necrosis",
+"pseudopalisading cells no necrosis",
+"necrosis", "blood vessels", "hyperplastic blood vessels",
+"microvascular proliferation", "early necrosis",
+"cellular tumor", "cellular tumor perinecrotic zone",
+"hemorrhage", "tissue fold", "space"))
+}
+
+#' provide access to a limma analysis of RNA-seq profiles for reference histology samples
+#' @importFrom utils download.file
+#' @note Uses \code{\link[utils]{download.file}} to acquire RDS of the output
+#' of \code{\link[limma]{eBayes}} from a public S3 bucket.  The limma model
+#' was fit using \code{\link[limma]{duplicateCorrelation}} to address multiplicity
+#' of contributions per donor.  Comparisons are to samples labeled \code{CT-reference} (cellular tumor, reference contributions),
+#' with coefficients 2-5 corresponding to CT-mvp (microvascular proliferation),
+#' CT-pan (pseudopalisading cells around necrosis), IT (infiltrating tumor),
+#' and LE (leading edge), respectively.
+#' @examples
+#' requireNamespace("limma")
+#' ebout = getRefLimma() # is result of eBayes
+#' colnames(ebout$coef)
+#' limma::topTable(ebout,2)
+#' @export
+getRefLimma = function() {
+ if (!requireNamespace("limma")) stop("install limma to use this function")
+ tf = tempfile()
+ download.file("https://s3.amazonaws.com/bcfound-itcr/histoLimma.rds", tf)
+ readRDS(tf)
+}
