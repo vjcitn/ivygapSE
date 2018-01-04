@@ -51,6 +51,10 @@
 #' @rdname helper
 #' @param se SummarizedExperiment instance, intended to work for ivySE in this package
 #' @aliases tumorDetails
+#' @return data.frames for tumorDetails, subBlockDetails and vocab
+#' @examples
+#' data(ivySE)
+#' dim(tumorDetails(ivySE))
 #' @export
 tumorDetails = function(se) metadata(se)$tumorDetails
 #' @rdname helper
@@ -81,6 +85,7 @@ data.frame(
 #' with coefficients 2-5 corresponding to CT-mvp (microvascular proliferation),
 #' CT-pan (pseudopalisading cells around necrosis), IT (infiltrating tumor),
 #' and LE (leading edge), respectively.
+#' @return an instance of \code{\link[limma]{MArrayLM-class}} representing regularized gene-wise ANOVAs
 #' @examples
 #' requireNamespace("limma")
 #' ebout = getRefLimma() # is result of eBayes

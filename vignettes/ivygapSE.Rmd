@@ -26,6 +26,7 @@ library(grid)
 library(png)
 library(ggplot2)
 library(limma)
+library(randomForest)
 })
 ```
 ```{r chk}

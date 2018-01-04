@@ -15,6 +15,13 @@ vocab()
 \arguments{
 \item{se}{SummarizedExperiment instance, intended to work for ivySE in this package}
 }
+\value{
+data.frames for tumorDetails, subBlockDetails and vocab
+}
 \description{
 helper functions for data access
+}
+\examples{
+data(ivySE)
+dim(tumorDetails(ivySE))
 }

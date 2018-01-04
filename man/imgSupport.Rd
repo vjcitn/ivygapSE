@@ -9,8 +9,14 @@ designOverview()
 
 nomenclat()
 }
+\value{
+a rastergrob grob
+}
 \description{
 render design overview
 
 render anatomic nomenclature
+}
+\examples{
+designOverview()
 }

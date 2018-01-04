@@ -8,6 +8,9 @@ renderPNG = function(fi) {
 #' render design overview
 #' @rdname imgSupport
 #' @aliases designOverview
+#' @return a rastergrob grob
+#' @examples
+#' designOverview()
 #' @export
 designOverview = function()
   renderPNG("whiteSixStud.png")

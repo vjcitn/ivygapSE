@@ -11,6 +11,9 @@ exprByType(sym, ...)
 
 \item{\dots}{passed to plot, exclusive of ylab, xlab, axes}
 }
+\value{
+invisibly returns a list with two elements: exprs, the vector of expression values, and types, the vector of structure types
+}
 \description{
 simple plot of expression values by structure/expression-based selection in IvyGAP
 }
