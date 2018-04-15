@@ -95,6 +95,6 @@ data.frame(
 getRefLimma = function() {
  if (!requireNamespace("limma")) stop("install limma to use this function")
  tf = tempfile()
- download.file("https://s3.amazonaws.com/bcfound-itcr/histoLimma.rds", tf)
+ download.file("https://s3.amazonaws.com/bcfound-itcr/histoLimma.rds", tf, mode="wb")
  readRDS(tf)
 }
