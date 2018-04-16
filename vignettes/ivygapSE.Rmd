@@ -176,9 +176,8 @@ resulting mean expression estimates (FPKM scale)
 and moderated test statistics are obtained
 as follows:
 ```{r lklim, cache=TRUE}
-#ebout = getRefLimma()
 library(limma)
-ebout = readRDS("~/Bioconductor/Devel/histoLimma.rds")
+ebout = getRefLimma()
 ```
 The ten genes that are most significantly differentially
 expressed between conditions CT and CT-mvp are found as follows:
