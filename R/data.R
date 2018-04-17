@@ -80,12 +80,12 @@ data.frame(
 #' @importFrom utils download.file
 #' @note Uses \code{\link[utils]{download.file}} to acquire RDS of the output
 #' of \code{\link[limma]{eBayes}} from a public S3 bucket.  The limma model
-#' was fit using \code{\link[limma]{duplicateCorrelation}} to address multiplicity
+#' was fit using \code{\link[limma:dupcor]{duplicateCorrelation}} to address multiplicity
 #' of contributions per donor.  Comparisons are to samples labeled \code{CT-reference} (cellular tumor, reference contributions),
 #' with coefficients 2-5 corresponding to CT-mvp (microvascular proliferation),
 #' CT-pan (pseudopalisading cells around necrosis), IT (infiltrating tumor),
 #' and LE (leading edge), respectively.
-#' @return an instance of \code{\link[limma]{MArrayLM-class}} representing regularized gene-wise ANOVAs
+#' @return an instance of \code{\link[limma:MArrayLM-class]{MArrayLM-class}} representing regularized gene-wise ANOVAs
 #' @examples
 #' requireNamespace("limma")
 #' ebout = getRefLimma() # is result of eBayes

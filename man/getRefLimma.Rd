@@ -7,7 +7,7 @@
 getRefLimma()
 }
 \value{
-an instance of \code{\link[limma]{MArrayLM-class}} representing regularized gene-wise ANOVAs
+an instance of \code{\link[limma:MArrayLM-class]{MArrayLM-class}} representing regularized gene-wise ANOVAs
 }
 \description{
 provide access to a limma analysis of RNA-seq profiles for reference histology samples
@@ -15,7 +15,7 @@ provide access to a limma analysis of RNA-seq profiles for reference histology s
 \note{
 Uses \code{\link[utils]{download.file}} to acquire RDS of the output
 of \code{\link[limma]{eBayes}} from a public S3 bucket.  The limma model
-was fit using \code{\link[limma]{duplicateCorrelation}} to address multiplicity
+was fit using \code{\link[limma:dupcor]{duplicateCorrelation}} to address multiplicity
 of contributions per donor.  Comparisons are to samples labeled \code{CT-reference} (cellular tumor, reference contributions),
 with coefficients 2-5 corresponding to CT-mvp (microvascular proliferation),
 CT-pan (pseudopalisading cells around necrosis), IT (infiltrating tumor),
