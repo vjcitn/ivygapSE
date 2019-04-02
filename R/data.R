@@ -85,7 +85,7 @@ data.frame(
 #' with coefficients 2-5 corresponding to CT-mvp (microvascular proliferation),
 #' CT-pan (pseudopalisading cells around necrosis), IT (infiltrating tumor),
 #' and LE (leading edge), respectively.
-#' @return an instance of \code{\link[limma:MArrayLM-class]{MArrayLM-class}} representing regularized gene-wise ANOVAs
+#' @return an instance of \code{\link[limma]{MArrayLM-class}} representing regularized gene-wise ANOVAs
 #' @examples
 #' requireNamespace("limma")
 #' ebout = getRefLimma() # is result of eBayes
