@@ -7,7 +7,7 @@
 getRefLimma()
 }
 \value{
-an instance of \code{\link[limma:MArrayLM-class]{MArrayLM-class}} representing regularized gene-wise ANOVAs
+an instance of \code{\link[limma:marraylm]{MArrayLM-class}} representing regularized gene-wise ANOVAs
 }
 \description{
 provide access to a limma analysis of RNA-seq profiles for reference histology samples
