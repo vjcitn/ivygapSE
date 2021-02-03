@@ -1,0 +1,10 @@
+pandoc: '2.5'
+pkgdown: 1.6.1
+pkgdown_sha: ~
+articles:
+  ivygapSE: ivygapSE.html
+last_built: 2021-02-03T14:41Z
+urls:
+  reference: https://vjcitn.github.io/ivygapSE/reference
+  article: https://vjcitn.github.io/ivygapSE/articles
+
