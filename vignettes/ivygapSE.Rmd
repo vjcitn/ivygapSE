@@ -175,7 +175,7 @@ classes `CT`, `CT-mvp`, `CT-pan`, `IT`, and `LE`.  The
 resulting mean expression estimates (FPKM scale) 
 and moderated test statistics are obtained
 as follows:
-```{r lklim, cache=TRUE}
+```{r lklim}
 library(limma)
 ebout = getRefLimma()
 ```
@@ -203,7 +203,7 @@ We will confine attention to samples annotated as "reference histology"
 and compute the duplicate correlation for modeling the
 effect of molecular subtype in the available samples.
 
-```{r setdup, cache=TRUE}
+```{r setdup}
 library(limma)
 refex = ivySE[, grep("reference", ivySE$structure_acronym)]
 refmat = assay(refex)

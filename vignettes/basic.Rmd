@@ -1,0 +1,94 @@
+---
+title: "ivygapSE basics"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{ivygapSE basics}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+
+The ivygapSE package includes molecular, imaging, and 
+limited clinical data on glioblastoma (GBM) patients.
+
+Expression data (RNA-seq) was developed in a complex design
+involving tissue blocks and subblocks and a selection process.
+See documents at https://vjcitn.github.io/ivygapSE for more
+details.
+
+To work with the available survival data in an elementary
+way, the following steps can be taken.
+
+```{r do1}
+ii = rownames(installed.packages())
+if (!("ivygapSE" %in% ii)) BiocManager::install("ivygapSE")
+suppressPackageStartupMessages({
+library(ivygapSE)
+library(survival)
+})
+data(ivySE)
+ivySE
+```
+
+This will show a SummarizedExperiment.  There are
+270 RNA-seq samples, derived from 37 patients.
+The variable `tumor_name` is used to identify different individual
+donors to the project.
+
+```{r lkta}
+table(table(ivySE$tumor_name))
+```
+
+This shows that there are 2 tumors for which
+18 RNA-seq studies were produced.  The RNA-seq
+samples are likely from different subblocks and
+may represent anatomically distinct components of
+the tumor.  Our job is to help organize data
+and analyses to help understand relationships
+among many aspects of data collected in this 
+study.
+
+The first basic exercise is to assess the
+prognostic information in a variable called
+`mgmt_methylation`, collected on most tumors.
+There is literature indicating that methylation
+of the promoter of the MGMT gene is associated
+with a more favorable survival profile.
+
+Unfortunately the survival data is incomplete.
+It can be obtained as follows.
+
+```{r lktim}
+metadata(ivySE)$tumorDetails$survival_days
+```
+
+We'll make a subset of the tumor data for those
+with non-missing survival times.
+
+```{r mkok}
+td = metadata(ivySE)$tumorDetails
+tdok = td[-which(is.na(td$survival_days)),]
+```
+
+Now we'll produce K-M plots.
+
+Overall survival:
+```{r lkov}
+library(survival)
+gbmsurv = Surv( tdok$survival_days, rep(1, nrow(tdok)) )
+plot(survfit(gbmsurv~1))
+```
+
+Split by MGMT methylation
+```{r met}
+plot(survfit(gbmsurv~I(tdok$mgmt_methylation=="Yes")), lty=1:2)
+```
+
+
