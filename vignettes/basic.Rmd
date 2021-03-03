@@ -90,5 +90,26 @@ Split by MGMT methylation
 ```{r met}
 plot(survfit(gbmsurv~I(tdok$mgmt_methylation=="Yes")), lty=1:2)
 ```
+here is the bi-plot
+```{r bip}
 
+struc = as.character(colData(ivySE)$structure_acronym)
+spls = strsplit(struc, "-")
+basis = vapply(spls, function(x) x[1], character(1))
 
+specific = which(basis!= "CT")
+
+iseSP = ivySE[ , specific]
+
+spbasis = basis[specific]
+
+useful = c("EIF4E3", "RNASE4", "PBK", "RYR2", "TPD52L1", 
+    "GIMAP6", "PRKCB", "ATP6V1A", "RUNDC3B", "CCPG1")
+
+splim = iseSP[useful,]
+
+bb = prcomp(log(t(assay(splim))+1))
+rownames(bb$x) = spbasis
+ 
+biplot(bb)
+```
