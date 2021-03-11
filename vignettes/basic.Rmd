@@ -89,10 +89,14 @@ plot(survfit(gbmsurv~1))
 Split by MGMT methylation
 ```{r met}
 plot(survfit(gbmsurv~I(tdok$mgmt_methylation=="Yes")), lty=1:2)
+legend(x=800,y=1,c("mgmt meth -","mgmt meth +"),lty = 1:2)
 ```
-here is the bi-plot
-```{r bip}
 
+```{r lab1}
+table(tdok$mgmt_methylation)
+```
+
+```{r bbplot,fig.width=10}
 struc = as.character(colData(ivySE)$structure_acronym)
 spls = strsplit(struc, "-")
 basis = vapply(spls, function(x) x[1], character(1))
@@ -113,3 +117,25 @@ rownames(bb$x) = spbasis
  
 biplot(bb)
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
