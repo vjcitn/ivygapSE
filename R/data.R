@@ -98,3 +98,11 @@ getRefLimma = function() {
  download.file("https://s3.amazonaws.com/bcfound-itcr/histoLimma.rds", tf, mode="wb")
  readRDS(tf)
 }
+
+#' details on image quantification results with ISH
+#' @docType data
+#' @source \url{http://glioblastoma.alleninstitute.org/api/v2/gbm/gene_expression_details.csv}
+#' @examples
+#' data(ish_stem_details)
+#' names(ish_stem_details)
+"ish_stem_details"
