@@ -70,17 +70,25 @@ table(newdf$isLE)
 fit_mixed_logistic = function( SE = splim, gene, dataframe ) {
   stopifnot(all(c("id", "bl", "isLE") %in% names(dataframe)))
   stopifnot(gene %in% rownames(SE))
-  newdf[[gene]] = as.numeric(log(assay(SE[gene,])+1)
-  fmla = paste("isLE", "~", gene)
+  dataframe[[gene]] = as.numeric(log(assay(SE[gene,])+1))
+  fmla = as.formula(paste("isLE", "~", gene))
   glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl)
   }
 
+ff = lapply(useful, function(x) fit_mixed_logistic( SE=splim, gene=x, dataframe=newdf) )
+names(ff) = useful
+
+summary(ff[1])
+
+summary(ff[2])
+
+if (FALSE) {
 
 # genes from Figure 4B
 newdf$atp1a2 = as.numeric(log(assay(splim["ATP1A2",])+1))
 g_atpla2 = glmmPQL(isLE~atp1a2, data=newdf, fam=binomial, random=~1|id/bl)
 summary(g_atpla2)
-if (FALSE) {
+
 newdf$fgfr3 = as.numeric(log(assay(splim["FGFR3",])+1))
 g_fgfr3 = glmmPQL(isLE~fgfr3, data=newdf, fam=binomial, random=~1|id/bl)
 summary(g_fgfr3)
