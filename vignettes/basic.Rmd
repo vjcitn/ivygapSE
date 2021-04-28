@@ -90,9 +90,144 @@ plot(survfit(gbmsurv~1))
 Split by MGMT methylation
 ```{r met}
 plot(survfit(gbmsurv~I(tdok$mgmt_methylation=="Yes")), lty=1:2)
+legend(x=800,y=1,c("mgmt meth -","mgmt meth +"),lty = 1:2)
 ```
 
 ## Biplot demo
+=======
+```{r lab1}
+table(tdok$mgmt_methylation)
+```
+
+```{r bbplot,out.width="250%"}
+struc = as.character(colData(ivySE)$structure_acronym)
+spls = strsplit(struc, "-")
+basis = vapply(spls, function(x) x[1], character(1))
+
+specific = which(basis!= "CT")
+
+iseSP = ivySE[ , specific]
+
+spbasis = basis[specific]
+
+useful = c("EIF4E3", "RNASE4", "PBK", "RYR2", "TPD52L1", 
+    "GIMAP6", "PRKCB", "ATP6V1A", "RUNDC3B", "CCPG1")
+
+splim = iseSP[useful,]
+
+bb = prcomp(log(t(assay(splim))+1))
+rownames(bb$x) = spbasis
+ 
+biplot(bb)
+```
+# mixed effect models for gene expression
+```{r mixed1}
+library(ivygapSE)
+data(ivySE)
+library(nlme)
+eexp = as.numeric(log(assay(ivySE["EIF4E3",])+1))
+library(nlme)
+newdf = data.frame(eexp=eexp, id=ivySE$tumor_id, bl=ivySE$block_name)
+newdf$rnase4 = as.numeric(log(assay(ivySE["RNASE4",])+1))
+mod1 = lme(eexp~rnase4, random=~id|bl, data=newdf)
+summary(mod1)
+```
+
+# different genes
+```{r genes}
+library(ivygapSE)
+library(MASS)
+library(nlme)
+
+data(ivySE)
+
+# In this code we drop out the "CT"-only samples
+struc = as.character(colData(ivySE)$structure_acronym)
+spls = strsplit(struc, "-")
+basis = vapply(spls, function(x) x[1], character(1))
+specific = which(basis!= "CT")
+iseSP = ivySE[ , specific]
+#spbasis = basis[specific]
+useful = c("EIF4E3", "RNASE4", "PBK", "RYR2", "TPD52L1",
+    "GIMAP6", "PRKCB", "ATP6V1A", "RUNDC3B", "CCPG1")
+splim = iseSP[useful,]
+#bb = prcomp(log(t(assay(splim))+1))
+#rownames(bb$x) = spbasis
+
+cd = colData(splim)
+stac = cd$structure_acronym
+stac1 = sapply(strsplit(stac, "-"), "[[", 1)
+table(stac1)
+
+eexp = as.numeric(log(assay(splim["EIF4E3",])+1))
+newdf = data.frame(eexp=eexp, id=splim$tumor_id, bl=splim$block_name)
+newdf$rnase4 = as.numeric(log(assay(splim["RNASE4",])+1))
+
+newdf$isCThbv = ifelse(stac1=="CThbv", 1, 0)
+table(newdf$isCThbv)
+newdf$isLE = ifelse(stac1=="LE", 1, 0)
+table(newdf$isLE)
+
+g1 = glmmPQL(isLE~rnase4, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g1)
+g2 = glmmPQL(isCThbv~rnase4, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g2)
+
+# new gene
+
+newdf$ryr2 = as.numeric(log(assay(splim["RYR2",])+1))
+g3 = glmmPQL(isLE~ryr2, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g3)
+g4 = glmmPQL(isLE~ryr2+rnase4, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g4)
+
+newdf$eif4e3 = as.numeric(log(assay(splim["EIF4E3",])+1))
+g5 = glmmPQL(isLE~eif4e3, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g5)
+g6 = glmmPQL(isLE~eif4e3+rnase4, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g6)
+
+newdf$pbk = as.numeric(log(assay(splim["PBK",])+1))
+g7 = glmmPQL(isLE~pbk, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g7)
+g8 = glmmPQL(isLE~pbk+rnase4, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g8)
+
+newdf$TPD52L1 = as.numeric(log(assay(splim["TPD52L1",])+1))
+g9 = glmmPQL(isLE~TPD52L1, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g9)
+g10 = glmmPQL(isLE~TPD52L1+rnase4, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g10)
+
+g11 = glmmPQL(isLE~rnase4+eif4e3, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g11)
+
+g12 = glmmPQL(isLE~rnase4+eif4e3+TPD52L1, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g12)
+
+g13 = glmmPQL(isLE~rnase4+eif4e3+TPD52L1+GIMAP6, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g13)
+
+g14 = glm(isLE~rnase4+eif4e3+TPD52L1+GIMAP6+PRKCB, data=newdf, fam=binomial)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r lkbip, out.width="250%"}
 struc = as.character(colData(ivySE)$structure_acronym)

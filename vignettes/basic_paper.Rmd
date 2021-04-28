@@ -1,0 +1,205 @@
+---
+title: "ivygapSE basics"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{ivygapSE basics}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+
+The ivygapSE package includes molecular, imaging, and 
+limited clinical data on glioblastoma (GBM) patients.
+
+Expression data (RNA-seq) was developed in a complex design
+involving tissue blocks and subblocks and a selection process.
+See documents at https://vjcitn.github.io/ivygapSE for more
+details.
+
+To work with the available survival data in an elementary
+way, the following steps can be taken.
+
+
+```{r genes}
+library(ivygapSE)
+library(MASS)
+library(nlme)
+
+data(ivySE)
+
+# In this code we drop out the "CT"-only samples
+struc = as.character(colData(ivySE)$structure_acronym)
+spls = strsplit(struc, "-")
+basis = vapply(spls, function(x) x[1], character(1))
+specific = which(basis!= "CT")
+iseSP = ivySE[ , specific]
+
+useful = c("EIF4E3","ATP1A2","FGFR3","LMO3","NCAN","FXYD1","PSD2","PRODH",
+           "HIF3A","HRSP12","KCNN3","PPM1K","KCNJ10","ADCYAP1R1","BMP7",
+           "KAT2B","CNTN1","SAMD9L","SLC7A11","ECHDC2","FAM181B","SALL2","SASH1",
+           
+           "CCL4","CCL3","EGR3","IL1B","CCL2","GPR56","TNF","CX3CR1","SERPINE1","CSF1",
+           "RAMP1","IL6ST","IL1A","PDE3B","CD276","FLT1","CXCL12","NR4A1","CSF1R","CCR1",
+           "RHOB","SPHK1","SORL1","IL6R","VASH1","ADAM28","STAMBPL1","ADAMTSL2")
+
+splim = iseSP[useful,]
+
+
+cd = colData(splim)
+stac = cd$structure_acronym
+stac1 = sapply(strsplit(stac, "-"), "[[", 1)
+table(stac1)
+
+eexp = as.numeric(log(assay(splim["EIF4E3",])+1))
+newdf = data.frame(eexp=eexp, id=splim$tumor_id, bl=splim$block_name)
+
+# it would be nice to generalize so that LE and IT and other types of
+# tissue classification could be modeled easily
+
+
+newdf$isLE = ifelse(stac1=="LE", 1, 0)
+table(newdf$isLE)
+
+fit_mixed_logistic = function( SE = splim, gene, dataframe ) {
+  stopifnot(all(c("id", "bl", "isLE") %in% names(dataframe)))
+  stopifnot(gene %in% rownames(SE))
+  newdf[[gene]] = as.numeric(log(assay(SE[gene,])+1)
+  fmla = paste("isLE", "~", gene)
+  glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl)
+  }
+
+
+# genes from Figure 4B
+newdf$atp1a2 = as.numeric(log(assay(splim["ATP1A2",])+1))
+g_atpla2 = glmmPQL(isLE~atp1a2, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_atpla2)
+if (FALSE) {
+newdf$fgfr3 = as.numeric(log(assay(splim["FGFR3",])+1))
+g_fgfr3 = glmmPQL(isLE~fgfr3, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_fgfr3)
+
+newdf$lmo3 = as.numeric(log(assay(splim["LMO3",])+1))
+g_lmo3 = glmmPQL(isLE~lmo3, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_lmo3)
+
+newdf$ncan = as.numeric(log(assay(splim["NCAN",])+1))
+g_ncan = glmmPQL(isLE~ncan, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_ncan)
+
+newdf$fxyd1 = as.numeric(log(assay(splim["FXYD1",])+1))
+g_fxyd1 = glmmPQL(isLE~fxyd1, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_fxyd1)
+
+newdf$psd2 = as.numeric(log(assay(splim["PSD2",])+1))
+g_psd2 = glmmPQL(isLE~psd2, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_psd2)
+
+newdf$prodh = as.numeric(log(assay(splim["PRODH",])+1))
+g_prodh = glmmPQL(isLE~prodh, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_psd2)
+
+newdf$hif3a = as.numeric(log(assay(splim["HIF3A",])+1))
+g_hif3a = glmmPQL(isLE~hif3a, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_hif3a)
+
+newdf$hrsp12 = as.numeric(log(assay(splim["HRSP12",])+1))
+g_hrsp12 = glmmPQL(isLE~hrsp12, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_hrsp12)
+
+newdf$kcnn3 = as.numeric(log(assay(splim["KCNN3",])+1))
+g_kcnn3 = glmmPQL(isLE~kcnn3, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_kcnn3)
+
+newdf$ppm1k = as.numeric(log(assay(splim["PPM1K",])+1))
+g_ppm1k = glmmPQL(isLE~ppm1k, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_ppm1k)
+
+newdf$kcnj10 = as.numeric(log(assay(splim["KCNJ10",])+1))
+g_kcnj10 = glmmPQL(isLE~kcnj10, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_kcnj10)
+
+newdf$adcyap1r1 = as.numeric(log(assay(splim["ADCYAP1R1",])+1))
+g_adcyap1r1 = glmmPQL(isLE~adcyap1r1, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_adcyap1r1)
+
+newdf$bmp7 = as.numeric(log(assay(splim["BMP7",])+1))
+g_bmp7 = glmmPQL(isLE~bmp7, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_bmp7)
+
+newdf$kat2b = as.numeric(log(assay(splim["KAT2B",])+1))
+g_kat2b = glmmPQL(isLE~kat2b, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_kat2b)
+
+newdf$cntn1 = as.numeric(log(assay(splim["CNTN1",])+1))
+g_cntn1 = glmmPQL(isLE~cntn1, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_cntn1)
+
+newdf$samd9l = as.numeric(log(assay(splim["SAMD9L",])+1))
+g_samd9l = glmmPQL(isLE~samd9l, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_samd9l)
+
+newdf$slc7a11 = as.numeric(log(assay(splim["SLC7A11",])+1))
+g_slc7a11 = glmmPQL(isLE~slc7a11, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_slc7a11)
+
+newdf$echdc2 = as.numeric(log(assay(splim["ECHDC2",])+1))
+g_echdc2 = glmmPQL(isLE~echdc2, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_echdc2)
+
+newdf$fam181b = as.numeric(log(assay(splim["FAM181B",])+1))
+g_fam181b = glmmPQL(isLE~fam181b, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_fam181b)
+
+newdf$sall2 = as.numeric(log(assay(splim["SALL2",])+1))
+g_sall2 = glmmPQL(isLE~sall2, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_sall2)
+
+newdf$sash1 = as.numeric(log(assay(splim["SASH1",])+1))
+g_sash1 = glmmPQL(isLE~sash1, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_sash1)
+
+
+
+# genes from Figure 5B
+newdf$ccl4 = as.numeric(log(assay(splim["CCL4",])+1))
+g_ccl4 = glmmPQL(isLE~ccl4, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_ccl4)
+
+newdf$ccl3 = as.numeric(log(assay(splim["CCL3",])+1))
+g_ccl3 = glmmPQL(isLE~ccl3, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_ccl3)
+
+newdf$egr3 = as.numeric(log(assay(splim["EGR3",])+1))
+g_egr3 = glmmPQL(isLE~egr3, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_egr3)
+
+newdf$il1b = as.numeric(log(assay(splim["IL1B",])+1))
+g_il1b = glmmPQL(isLE~il1b, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_il1b)
+
+newdf$ccl2 = as.numeric(log(assay(splim["CCL2",])+1))
+g_ccl2 = glmmPQL(isLE~ccl2, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g_ccl2)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
