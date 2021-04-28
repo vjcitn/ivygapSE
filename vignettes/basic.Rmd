@@ -202,6 +202,11 @@ summary(g11)
 g12 = glmmPQL(isLE~rnase4+eif4e3+TPD52L1, data=newdf, fam=binomial, random=~1|id/bl)
 summary(g12)
 
+g13 = glmmPQL(isLE~rnase4+eif4e3+TPD52L1+GIMAP6, data=newdf, fam=binomial, random=~1|id/bl)
+summary(g13)
+
+g14 = glm(isLE~rnase4+eif4e3+TPD52L1+GIMAP6+PRKCB, data=newdf, fam=binomial)
+
 ```
 
 
