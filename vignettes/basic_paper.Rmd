@@ -67,20 +67,20 @@ newdf = data.frame(eexp=eexp, id=splim$tumor_id, bl=splim$block_name)
 newdf$isLE = ifelse(stac1=="LE", 1, 0)
 table(newdf$isLE)
 
-fit_mixed_logistic = function( SE = splim, gene, dataframe ) {
+fit_mixed_logistic = function( SE = splim, gene, dataframe, verbose=FALSE ) {
   stopifnot(all(c("id", "bl", "isLE") %in% names(dataframe)))
   stopifnot(gene %in% rownames(SE))
   dataframe[[gene]] = as.numeric(log(assay(SE[gene,])+1))
   fmla = as.formula(paste("isLE", "~", gene))
-  glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl)
+  glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
   }
 
 ff = lapply(useful, function(x) fit_mixed_logistic( SE=splim, gene=x, dataframe=newdf) )
 names(ff) = useful
 
-summary(ff[1])
+summary(ff[[1]])
 
-summary(ff[2])
+summary(ff[[2]])
 
 if (FALSE) {
 
