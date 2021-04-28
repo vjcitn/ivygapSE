@@ -32,6 +32,7 @@ if (!("ivygapSE" %in% ii)) BiocManager::install("ivygapSE")
 suppressPackageStartupMessages({
 library(ivygapSE)
 library(survival)
+library(ggbiplot)
 })
 data(ivySE)
 ivySE
@@ -91,4 +92,30 @@ Split by MGMT methylation
 plot(survfit(gbmsurv~I(tdok$mgmt_methylation=="Yes")), lty=1:2)
 ```
 
+## Biplot demo
 
+```{r lkbip, out.width="250%"}
+struc = as.character(colData(ivySE)$structure_acronym)
+spls = strsplit(struc, "-")
+basis = vapply(spls, function(x) x[1], character(1))
+
+specific = which(basis!= "CT")
+
+iseSP = ivySE[ , specific]
+
+spbasis = basis[specific]
+
+useful = c("EIF4E3", "RNASE4", "PBK", "RYR2", "TPD52L1",
+    "GIMAP6", "PRKCB", "ATP6V1A", "RUNDC3B", "CCPG1")
+
+splim = iseSP[useful,]
+
+bb = prcomp(log(t(assay(splim))+1))
+rownames(bb$x) = spbasis
+
+biplot(bb, cex=c(.3,.6))
+```
+
+```{r lkn, out.width="150%"}
+ggbiplot(bb, labels=rownames(bb$x), alpha=.4)
+```
