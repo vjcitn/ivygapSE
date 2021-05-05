@@ -81,3 +81,14 @@ names(ff) = useful
 summary(ff[[1]])
 
 summary(ff[[2]])
+
+fit_mixed_logistic_CT = function( SE = splim, gene, dataframe, verbose=FALSE ) {
+  stopifnot(all(c("id", "bl", "CThbv") %in% names(dataframe)))
+  stopifnot(gene %in% rownames(SE))
+  dataframe[[gene]] = as.numeric(log(assay(SE[gene,])+1))
+  fmla = as.formula(paste("CThbv", "~", gene))
+  glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
+  }
+ff_CT = lapply(useful, function(x) fit_mixed_logistic_CT( SE=splim, gene=x, dataframe=newdf) )
+names(ff_CT) = useful
+summary(ff_CT[[1]])
