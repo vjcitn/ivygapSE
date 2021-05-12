@@ -31,16 +31,13 @@ way, the following steps can be taken.
 library(ivygapSE)
 library(MASS)
 library(nlme)
-
 data(ivySE)
-
 # In this code we drop out the "CT"-only samples
 struc = as.character(colData(ivySE)$structure_acronym)
 spls = strsplit(struc, "-")
 basis = vapply(spls, function(x) x[1], character(1))
 specific = which(basis!= "CT")
 iseSP = ivySE[ , specific]
-
 useful = c("EIF4E3","ATP1A2","FGFR3","LMO3","NCAN","FXYD1","PSD2","PRODH",
            "HIF3A","HRSP12","KCNN3","PPM1K","KCNJ10","ADCYAP1R1","BMP7",
            "KAT2B","CNTN1","SAMD9L","SLC7A11","ECHDC2","FAM181B","SALL2","SASH1",
@@ -48,22 +45,19 @@ useful = c("EIF4E3","ATP1A2","FGFR3","LMO3","NCAN","FXYD1","PSD2","PRODH",
            "CCL4","CCL3","EGR3","IL1B","CCL2","GPR56","TNF","CX3CR1","SERPINE1","CSF1",
            "RAMP1","IL6ST","IL1A","PDE3B","CD276","FLT1","CXCL12","NR4A1","CSF1R","CCR1",
            "RHOB","SPHK1","SORL1","IL6R","VASH1","ADAM28","STAMBPL1","ADAMTSL2")
-
 splim = iseSP[useful,]
-
-
 cd = colData(splim)
 stac = cd$structure_acronym
 stac1 = sapply(strsplit(stac, "-"), "[[", 1)
 table(stac1)
-
 eexp = as.numeric(log(assay(splim["EIF4E3",])+1))
 newdf = data.frame(eexp=eexp, id=splim$tumor_id, bl=splim$block_name)
-
 # it would be nice to generalize so that LE and IT and other types of
 # tissue classification could be modeled easily
 
-
+newdf$isCTH = ifelse(stac1 == "CThbv", 1, 0)
+table(newdf$isCTH)
+      
 newdf$isLE = ifelse(stac1=="LE", 1, 0)
 table(newdf$isLE)
 
@@ -74,21 +68,61 @@ fit_mixed_logistic = function( SE = splim, gene, dataframe, verbose=FALSE ) {
   fmla = as.formula(paste("isLE", "~", gene))
   glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
   }
-
-ff = lapply(useful, function(x) fit_mixed_logistic( SE=splim, gene=x, dataframe=newdf) )
+ff = lapply(useful, function(x) fit_mixed_logistic(SE=splim, gene=x, dataframe=newdf) )
 names(ff) = useful
 
-summary(ff[[1]])
 
+summary(ff[[1]])
 summary(ff[[2]])
+summary(ff[[3]])
+summary(ff[[4]])
+summary(ff[[5]])
+summary(ff[[6]])
+summary(ff[[7]])
+summary(ff[[8]])
+summary(ff[[9]])
+summary(ff[[10]])
+summary(ff[[11]])
+summary(ff[[12]])
+summary(ff[[13]])
+summary(ff[[14]])
+summary(ff[[15]])
+summary(ff[[16]])
+summary(ff[[17]])
+summary(ff[[18]])
+summary(ff[[19]])
+summary(ff[[20]])
+
+
 
 fit_mixed_logistic_CT = function( SE = splim, gene, dataframe, verbose=FALSE ) {
-  stopifnot(all(c("id", "bl", "CThbv") %in% names(dataframe)))
+
+  stopifnot(all(c("id", "bl", "isCTH") %in% names(dataframe)))
   stopifnot(gene %in% rownames(SE))
   dataframe[[gene]] = as.numeric(log(assay(SE[gene,])+1))
-  fmla = as.formula(paste("CThbv", "~", gene))
+  fmla = as.formula(paste("isCTH", "~", gene))
   glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
+
   }
+
 ff_CT = lapply(useful, function(x) fit_mixed_logistic_CT( SE=splim, gene=x, dataframe=newdf) )
 names(ff_CT) = useful
 summary(ff_CT[[1]])
+
+
+# ###genes
+# fit_mixed_logistic_CT_two_genes = function( SE = splim, gene1, gene2, dataframe, verbose=FALSE ) {
+#   stopifnot(all(c("id", "bl", "isCTH") %in% names(dataframe)))
+#   stopifnot(gene %in% rownames(SE))
+#   dataframe[[gene1]] = as.numeric(log(assay(SE[gene1,])+1))
+#   dataframe[[gene2]] = as.numeric(log(assay(SE[gene2,])+1))
+#   fmla = as.formula(paste("isCTH", "~", gene1, "+", gene2))
+#   glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
+# }
+# 
+# ff_CT_two_genes = lapply(useful, function(x) fit_mixed_logistic_CT_two_genes(SE=splim, gene=x, dataframe=newdf) )
+# names(ff_CT_two_genes) = useful
+# summary(ff_CT_two_genes[[1]])
+
+
+
