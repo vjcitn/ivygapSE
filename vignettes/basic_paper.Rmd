@@ -83,45 +83,7 @@ newtab = data.frame(gene = names(coefs),
 
 datatable(newtab)
 
-if (FALSE) {
-summary(ff[[1]])
-summary(ff[[2]])
-summary(ff[[3]])
-summary(ff[[4]])
-summary(ff[[5]])
-summary(ff[[6]])
-summary(ff[[7]])
-summary(ff[[8]])
-summary(ff[[9]])
-summary(ff[[10]])
-summary(ff[[11]])
-summary(ff[[12]])
-summary(ff[[13]])
-summary(ff[[14]])
-summary(ff[[15]])
-summary(ff[[16]])
-summary(ff[[17]])
-summary(ff[[18]])
-summary(ff[[19]])
-summary(ff[[20]])
 
-
-
-fit_mixed_logistic_CT = function( SE = splim, gene, dataframe, verbose=FALSE ) {
-
-  stopifnot(all(c("id", "bl", "isCTH") %in% names(dataframe)))
-  stopifnot(gene %in% rownames(SE))
-  dataframe[[gene]] = as.numeric(log(assay(SE[gene,])+1))
-  fmla = as.formula(paste("isCTH", "~", gene))
-  glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
-
-  }
-
-ff_CT = lapply(useful, function(x) fit_mixed_logistic_CT(SE=splim, gene=x, dataframe=newdf) )
-names(ff_CT) = useful
-summary(ff_CT[[1]])
-
-}
 
 # ###genes
 # fit_mixed_logistic_CT_two_genes = function( SE = splim, gene1, gene2, dataframe, verbose=FALSE ) {
@@ -136,6 +98,3 @@ summary(ff_CT[[1]])
 # ff_CT_two_genes = lapply(useful, function(x) fit_mixed_logistic_CT_two_genes(SE=splim, gene=x, dataframe=newdf) )
 # names(ff_CT_two_genes) = useful
 # summary(ff_CT_two_genes[[1]])
-
-
-
