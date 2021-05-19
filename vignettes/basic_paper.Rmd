@@ -26,11 +26,13 @@ details.
 To work with the available survival data in an elementary
 way, the following steps can be taken.
 
+install.packages("DT")
 
 ```{r genes}
 library(ivygapSE)
 library(MASS)
 library(nlme)
+library(DT)
 data(ivySE)
 # In this code we drop out the "CT"-only samples
 struc = as.character(colData(ivySE)$structure_acronym)
@@ -71,7 +73,17 @@ fit_mixed_logistic = function( SE = splim, gene, dataframe, verbose=FALSE ) {
 ff = lapply(useful, function(x) fit_mixed_logistic(SE=splim, gene=x, dataframe=newdf) )
 names(ff) = useful
 
+coefs= lapply(ff, function(x) summary(x)$tTable)
 
+
+newtab = data.frame(gene = names(coefs),
+                    effect = round(sapply(coefs, function(x) x[2, "Value"]),3),
+                    tstat = round(sapply(coefs, function(x)x[2, "t-value"]), 3))
+
+
+datatable(newtab)
+
+if (FALSE) {
 summary(ff[[1]])
 summary(ff[[2]])
 summary(ff[[3]])
@@ -105,10 +117,11 @@ fit_mixed_logistic_CT = function( SE = splim, gene, dataframe, verbose=FALSE ) {
 
   }
 
-ff_CT = lapply(useful, function(x) fit_mixed_logistic_CT( SE=splim, gene=x, dataframe=newdf) )
+ff_CT = lapply(useful, function(x) fit_mixed_logistic_CT(SE=splim, gene=x, dataframe=newdf) )
 names(ff_CT) = useful
 summary(ff_CT[[1]])
 
+}
 
 # ###genes
 # fit_mixed_logistic_CT_two_genes = function( SE = splim, gene1, gene2, dataframe, verbose=FALSE ) {
