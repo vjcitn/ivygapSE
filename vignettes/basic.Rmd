@@ -32,6 +32,7 @@ if (!("ivygapSE" %in% ii)) BiocManager::install("ivygapSE")
 suppressPackageStartupMessages({
 library(ivygapSE)
 library(survival)
+library(ggbiplot)
 })
 data(ivySE)
 ivySE
@@ -92,6 +93,8 @@ plot(survfit(gbmsurv~I(tdok$mgmt_methylation=="Yes")), lty=1:2)
 legend(x=800,y=1,c("mgmt meth -","mgmt meth +"),lty = 1:2)
 ```
 
+## Biplot demo
+=======
 ```{r lab1}
 table(tdok$mgmt_methylation)
 ```
@@ -226,3 +229,28 @@ g14 = glm(isLE~rnase4+eif4e3+TPD52L1+GIMAP6+PRKCB, data=newdf, fam=binomial)
 
 
 
+```{r lkbip, out.width="250%"}
+struc = as.character(colData(ivySE)$structure_acronym)
+spls = strsplit(struc, "-")
+basis = vapply(spls, function(x) x[1], character(1))
+
+specific = which(basis!= "CT")
+
+iseSP = ivySE[ , specific]
+
+spbasis = basis[specific]
+
+useful = c("EIF4E3", "RNASE4", "PBK", "RYR2", "TPD52L1",
+    "GIMAP6", "PRKCB", "ATP6V1A", "RUNDC3B", "CCPG1")
+
+splim = iseSP[useful,]
+
+bb = prcomp(log(t(assay(splim))+1))
+rownames(bb$x) = spbasis
+
+biplot(bb, cex=c(.3,.6))
+```
+
+```{r lkn, out.width="150%"}
+ggbiplot(bb, labels=rownames(bb$x), alpha=.4)
+```
