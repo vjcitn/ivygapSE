@@ -82,19 +82,34 @@ newtab = data.frame(gene = names(coefs),
 
 
 datatable(newtab)
+```
 
+Now let's try pairs of genes.
 
+```{r dopairs}
+allpairs = combn(useful,2)
+allpairs.list = lapply(1:ncol(allpairs), function(x) allpairs[,x])
 
-# ###genes
-# fit_mixed_logistic_CT_two_genes = function( SE = splim, gene1, gene2, dataframe, verbose=FALSE ) {
-#   stopifnot(all(c("id", "bl", "isCTH") %in% names(dataframe)))
-#   stopifnot(gene %in% rownames(SE))
-#   dataframe[[gene1]] = as.numeric(log(assay(SE[gene1,])+1))
-#   dataframe[[gene2]] = as.numeric(log(assay(SE[gene2,])+1))
-#   fmla = as.formula(paste("isCTH", "~", gene1, "+", gene2))
-#   glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
-# }
-# 
-# ff_CT_two_genes = lapply(useful, function(x) fit_mixed_logistic_CT_two_genes(SE=splim, gene=x, dataframe=newdf) )
-# names(ff_CT_two_genes) = useful
-# summary(ff_CT_two_genes[[1]])
+fit_mixed_logistic_CT_two_genes = function( SE = splim, gene1, gene2, dataframe, verbose=FALSE ) {
+  stopifnot(all(c("id", "bl", "isCTH") %in% names(dataframe)))  # so far just using CTH, but need to generalize FIXME
+   stopifnot(gene1 %in% rownames(SE))
+   stopifnot(gene2 %in% rownames(SE))
+   dataframe[[gene1]] = as.numeric(log(assay(SE[gene1,])+1))
+   dataframe[[gene2]] = as.numeric(log(assay(SE[gene2,])+1))
+   fmla = as.formula(paste("isCTH", "~", gene1, "+", gene2))
+   glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
+}
+
+ff_CT_two_genes = lapply(allpairs.list[1:5], function(x) fit_mixed_logistic_CT_two_genes(SE=splim, 
+                    gene1=x[1], gene2=x[2], dataframe=newdf) )
+ff_CT_two_genes
+
+coefs= lapply(ff_CT_two_genes, function(x) summary(x)$tTable)
+coefs
+
+gns_pair = lapply(coefs, function(x) rownames(x)[2:3])
+gns_pair
+
+gns = lapply(coefs, function(x) data.frame(genes=rownames(x)[2:3], effs=x[2:3, "Value"], tstats=x[2:3, "t-value"]))
+gns
+```
