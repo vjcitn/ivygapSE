@@ -4,7 +4,7 @@
 \alias{getRefLimma}
 \title{provide access to a limma analysis of RNA-seq profiles for reference histology samples}
 \usage{
-getRefLimma()
+getRefLimma(cache = BiocFileCache::BiocFileCache())
 }
 \value{
 an instance of \code{\link[limma:marraylm]{MArrayLM-class}} representing regularized gene-wise ANOVAs
@@ -13,7 +13,7 @@ an instance of \code{\link[limma:marraylm]{MArrayLM-class}} representing regular
 provide access to a limma analysis of RNA-seq profiles for reference histology samples
 }
 \note{
-Uses \code{\link[utils]{download.file}} to acquire RDS of the output
+Uses BiocFileCache::bfcadd to acquire RDS of the output
 of \code{\link[limma]{eBayes}} from a public S3 bucket.  The limma model
 was fit using \code{\link[limma:dupcor]{duplicateCorrelation}} to address multiplicity
 of contributions per donor.  Comparisons are to samples labeled \code{CT-reference} (cellular tumor, reference contributions),

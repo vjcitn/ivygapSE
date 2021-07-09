@@ -26,7 +26,6 @@ details.
 To work with the available survival data in an elementary
 way, the following steps can be taken.
 
-install.packages("DT")
 
 ```{r genes}
 library(ivygapSE)
@@ -103,5 +102,13 @@ fit_mixed_logistic_CT_two_genes = function( SE = splim, gene1, gene2, dataframe,
 ff_CT_two_genes = lapply(allpairs.list[1:5], function(x) fit_mixed_logistic_CT_two_genes(SE=splim, 
                     gene1=x[1], gene2=x[2], dataframe=newdf) )
 ff_CT_two_genes
-```
 
+coefs= lapply(ff_CT_two_genes, function(x) summary(x)$tTable)
+coefs
+
+gns_pair = lapply(coefs, function(x) rownames(x)[2:3])
+gns_pair
+
+gns = lapply(coefs, function(x) data.frame(genes=rownames(x)[2:3], effs=x[2:3, "Value"], tstats=x[2:3, "t-value"]))
+gns
+```
