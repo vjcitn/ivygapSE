@@ -14,6 +14,7 @@ output:
     toc: yes
 ---
 
+# Overview
 
 The ivygapSE package includes molecular, imaging, and 
 limited clinical data on glioblastoma (GBM) patients.
@@ -26,6 +27,7 @@ details.
 To work with the available survival data in an elementary
 way, the following steps can be taken.
 
+# Basic setup
 
 ```{r genes}
 library(ivygapSE)
@@ -55,6 +57,14 @@ eexp = as.numeric(log(assay(splim["EIF4E3",])+1))
 newdf = data.frame(eexp=eexp, id=splim$tumor_id, bl=splim$block_name)
 # it would be nice to generalize so that LE and IT and other types of
 # tissue classification could be modeled easily
+```
+
+## Enhance `newdf` so that it has binary representations of key sample types (CThbv, CTmvp, etc.)
+
+We are now going to build up newdf so that it has binary outcomes
+for different sample "types", i.e., leading edge, microvascular proliferation, etc.
+
+```{r multioutcome}
 
 newdf$isCTH = ifelse(stac1 == "CThbv", 1, 0)
 table(newdf$isCTH)
@@ -62,26 +72,61 @@ table(newdf$isCTH)
 newdf$isLE = ifelse(stac1=="LE", 1, 0)
 table(newdf$isLE)
 
-fit_mixed_logistic = function( SE = splim, gene, dataframe, verbose=FALSE ) {
-  stopifnot(all(c("id", "bl", "isLE") %in% names(dataframe)))
+newdf$isCTMVP = ifelse(stac1=="CTmvp", 1, 0)  # microvascular proliferation
+table(newdf$isCTMVP)
+
+newdf$isCTPAN = ifelse(stac1=="CTPAN", 1, 0)  # pseudopalisading around necrosis
+table(newdf$isCTPAN)
+```
+
+We can do a few more like above, pnz and IT.
+
+## Define a mixed effect logistic regression tool
+
+```{r definemodel}
+fit_mixed_logistic = function( SE = splim, type = "isLE", gene, dataframe, verbose=FALSE ) {
+  stopifnot(all(c("id", "bl", type) %in% names(dataframe)))
   stopifnot(gene %in% rownames(SE))
   dataframe[[gene]] = as.numeric(log(assay(SE[gene,])+1))
-  fmla = as.formula(paste("isLE", "~", gene))
+  fmla = as.formula(paste(type, "~", gene))
   glmmPQL(fmla, data=dataframe, fam=binomial, random=~1|id/bl, verbose=verbose)
   }
-ff = lapply(useful, function(x) fit_mixed_logistic(SE=splim, gene=x, dataframe=newdf) )
-names(ff) = useful
-
-coefs= lapply(ff, function(x) summary(x)$tTable)
-
-
-newtab = data.frame(gene = names(coefs),
-                    effect = round(sapply(coefs, function(x) x[2, "Value"]),3),
-                    tstat = round(sapply(coefs, function(x)x[2, "t-value"]), 3))
-
-
-datatable(newtab)
 ```
+
+# Sample type prediction using mixed effect logistic regression
+
+## Leading edge
+
+```{r doLE}
+LE_models = lapply(useful, function(x) fit_mixed_logistic(SE=splim, type="isLE", gene=x, dataframe=newdf) )
+names(LE_models) = useful
+
+coefs_LE= lapply(LE_models, function(x) summary(x)$tTable)
+
+
+newtab_LE = data.frame(gene = names(coefs_LE),
+                    effect = round(sapply(coefs_LE, function(x) x[2, "Value"]),3),
+                    tstat = round(sapply(coefs_LE, function(x)x[2, "t-value"]), 3))
+
+
+datatable(newtab_LE)
+```
+
+## Hyperplastic blood vessels
+
+```{r doCTH}
+CTH_models = lapply(useful, function(x) fit_mixed_logistic(SE=splim, type="isCTH", gene=x, dataframe=newdf) )
+names(CTH_models) = useful
+
+coefs_CTH= lapply(CTH_models, function(x) summary(x)$tTable)
+
+newtab_CTH = data.frame(gene = names(coefs_CTH),
+                    effect = round(sapply(coefs_CTH, function(x) x[2, "Value"]),3),
+                    tstat = round(sapply(coefs_CTH, function(x)x[2, "t-value"]), 3))
+datatable(newtab_CTH)
+```
+
+# Enhance the model to use pairs of genes
 
 Now let's try pairs of genes.
 
