@@ -1,10 +1,10 @@
 ---
-title: "ivygapSE basics"
+title: "ivygapSE basics, starting out"
 author: "Vincent J. Carey, stvjc at channing.harvard.edu"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{ivygapSE basics}
+  %\VignetteIndexEntry{ivygapSE basics, starting out}
   %\VignetteEncoding{UTF-8}
 output:
   BiocStyle::html_document:
@@ -26,9 +26,11 @@ details.
 To work with the available survival data in an elementary
 way, the following steps can be taken.
 
-```{r do1}
+```{r do1, eval=FALSE}
 ii = rownames(installed.packages())
 if (!("ivygapSE" %in% ii)) BiocManager::install("ivygapSE")
+```
+```{r do1b}
 suppressPackageStartupMessages({
 library(ivygapSE)
 library(survival)
@@ -44,6 +46,16 @@ donors to the project.
 
 ```{r lkta}
 table(table(ivySE$tumor_name))
+```
+
+Molecular subtypes are recorded.
+
+```{r domol,eval=FALSE}
+moltype = tumorDetails(ivySE)$molecular_subtype
+names(moltype) = tumorDetails(ivySE)$tumor_name
+moltype[nchar(moltype)==0] = "missing"
+ivySE$moltype = factor(moltype[ivySE$tumor_name])
+table(ivySE$moltype)
 ```
 
 This shows that there are 2 tumors for which
@@ -116,6 +128,17 @@ bb = prcomp(log(t(assay(splim))+1))
 rownames(bb$x) = spbasis
  
 biplot(bb)
+
+bb2 = bb
+rownames(bb2$x) = splim$short_moltype
+biplot(bb2, cex=c(.7,.4))
+
+bb3 = bb
+rownames(bb3$x) = splim$short_study
+biplot(bb3, cex=c(.7,.4))
+
+
+
 ```
 # mixed effect models for gene expression
 ```{r mixed1}
@@ -124,7 +147,7 @@ data(ivySE)
 library(nlme)
 eexp = as.numeric(log(assay(ivySE["EIF4E3",])+1))
 library(nlme)
-newdf = data.frame(eexp=eexp, id=ivySE$tumor_id, bl=ivySE$block_name)
+newdf = data.frame(eexp=eexp, id=ivySE$tumor_id, bl=ivySE$block_name, specimen_id=as.character(ivySE$specimen_id))
 newdf$rnase4 = as.numeric(log(assay(ivySE["RNASE4",])+1))
 mod1 = lme(eexp~rnase4, random=~id|bl, data=newdf)
 summary(mod1)
@@ -157,7 +180,7 @@ stac1 = sapply(strsplit(stac, "-"), "[[", 1)
 table(stac1)
 
 eexp = as.numeric(log(assay(splim["EIF4E3",])+1))
-newdf = data.frame(eexp=eexp, id=splim$tumor_id, bl=splim$block_name)
+newdf = data.frame(eexp=eexp, id=splim$tumor_id, bl=splim$block_name, specimen_id=as.character(splim$specimen_id))
 newdf$rnase4 = as.numeric(log(assay(splim["RNASE4",])+1))
 
 newdf$isCThbv = ifelse(stac1=="CThbv", 1, 0)
@@ -169,6 +192,9 @@ g1 = glmmPQL(isLE~rnase4, data=newdf, fam=binomial, random=~1|id/bl)
 summary(g1)
 g2 = glmmPQL(isCThbv~rnase4, data=newdf, fam=binomial, random=~1|id/bl)
 summary(g2)
+```
+
+```{r jjj,eval=FALSE}
 
 # new gene
 

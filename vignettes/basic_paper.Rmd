@@ -26,7 +26,6 @@ details.
 To work with the available survival data in an elementary
 way, the following steps can be taken.
 
-install.packages("DT")
 
 ```{r genes}
 library(ivygapSE)
