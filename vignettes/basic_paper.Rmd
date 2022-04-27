@@ -75,8 +75,11 @@ table(newdf$isLE)
 newdf$isCTMVP = ifelse(stac1=="CTmvp", 1, 0)  # microvascular proliferation
 table(newdf$isCTMVP)
 
-newdf$isCTPAN = ifelse(stac1=="CTPAN", 1, 0)  # pseudopalisading around necrosis
+newdf$isCTPAN = ifelse(stac1=="CTpan", 1, 0)  # pseudopalisading around necrosis
 table(newdf$isCTPAN)
+
+newdf$isCTPNZ = ifelse(stac1=="CTpnz", 1, 0)  #  Perinecrotic zone (CTpnz)
+table(newdf$isCTPNZ))
 ```
 
 We can do a few more like above, pnz and IT.
@@ -125,6 +128,20 @@ newtab_CTH = data.frame(gene = names(coefs_CTH),
                     tstat = round(sapply(coefs_CTH, function(x)x[2, "t-value"]), 3))
 datatable(newtab_CTH)
 ```
+
+## Perinecrotic zone
+
+```{r doPNZ}
+PNZ_models = lapply(useful, function(x) fit_mixed_logistic(SE=splim, type="isCTPNZ", gene=x, dataframe=newdf) )
+names(PNZ_models) = useful
+coefs_PNZ = lapply(PNZ_models, function(x) summary(x)$tTable)
+newtab_PNZ = data.frame(gene = names(coefs_PNZ),
+                    effect = round(sapply(coefs_PNZ, function(x) x[2, "Value"]),3),
+                    tstat = round(sapply(coefs_PNZ, function(x)x[2, "t-value"]), 3))
+datatable(newtab_PNZ)
+```
+
+## PAN: pseudopalisading around necrosis -- yvonne
 
 # Enhance the model to use pairs of genes
 
