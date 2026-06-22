@@ -2,7 +2,6 @@
 #' @import shiny
 #' @importFrom utils packageVersion
 #' @importFrom S4Vectors metadata
-#' @import survminer
 #' @import hwriter
 #' @import SummarizedExperiment
 #' @import survival
