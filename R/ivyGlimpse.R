@@ -1,6 +1,5 @@
 #' simple app to explore image property quantifications in relation to survival and expression
 #' @import shiny
-#' @importFrom UpSetR upset
 #' @importFrom utils packageVersion
 #' @importFrom S4Vectors metadata
 #' @import survminer
@@ -8,7 +7,7 @@
 #' @import SummarizedExperiment
 #' @import survival
 #' @import plotly
-#' @importFrom graphics boxplot par
+#' @importFrom graphics barplot boxplot legend par
 #' @importFrom stats median
 #' @importFrom utils browseURL data
 #' @rawNamespace import(ggplot2, except=last_plot)
@@ -128,9 +127,17 @@ ivyGlimpse = function() {
                     "specimen_page_link")]
        df$donor_id = paste0("donor: ", df$donor_id)
        df$molm = molmap[df$molecular_subtype]
-       p = ggplot(df, aes_(x=as.name(input$x), y=as.name(input$y), text=as.name("donor_id"))) + 
-              geom_point() #data=df, mapping=aes_(colour=as.name("molm")))
-       gp = ggplotly(p, source="subset", tooltip="text") %>% layout(dragmode="select") #plot(sb[, input$x], sb[, input$y], xlab=input$x, ylab=input$y )
+       gp = plot_ly(df,
+              x = df[[input$x]],
+              y = df[[input$y]],
+              text = ~donor_id,
+              type = "scatter",
+              mode = "markers",
+              source = "subset") %>%
+            layout(dragmode = "select",
+                   xaxis = list(title = input$x),
+                   yaxis = list(title = input$y)) %>%
+            event_register("plotly_selected")
        event.data <- event_data("plotly_click", source = "subset")
        if (!is.null(event.data)) browseURL(df[event.data$pointNumber+1,
            "specimen_page_link"])
@@ -151,8 +158,12 @@ ivyGlimpse = function() {
      
      output$plot2 = renderPlot({
         validate(need(!is.null(procSel()), "waiting for (dragged) selection"))
-        mm = procSel() #survfit(Surv(survival_days, rep(1,nrow(udf)))~grp, data=udf)
-        suppressWarnings({ ggsurvplot(mm) })
+        mm = procSel()
+        plot(mm, col=c("black","red"), lty=1:2,
+             xlab="days", ylab="survival probability",
+             main="Kaplan-Meier, grp=1 for selected donors")
+        legend("topright", legend=c("grp=0","grp=1"),
+               col=c("black","red"), lty=1:2)
        })
     
      output$boxes1 = renderPlot({
@@ -218,8 +229,13 @@ ivyGlimpse = function() {
            "data availability configurations for the image-derived tumor features.") )
       output$upset = renderPlot({
          md = metadata(ivySE)$subBlock
-         mm = md[,16:26]
-         upset(data.frame(1-is.na(mm)), 11)
+         mm = data.frame(1-is.na(md[,16:26]))
+         counts = colSums(mm)
+         labels = gsub("normalized_area_", "", names(counts))
+         par(mar=c(7,4,2,2))
+         barplot(counts, names.arg=labels, las=2,
+                 ylab="# subblocks with data",
+                 main="Data availability by image feature")
          })
      }
     shinyApp(ui=ui, server=server)

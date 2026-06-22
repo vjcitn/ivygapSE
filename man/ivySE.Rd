@@ -11,7 +11,7 @@ SummarizedExperiment instance
 processed from \url{glioblastoma.alleninstitute.org}; see Note.
 }
 \usage{
-ivySE
+data(ivySE)
 }
 \description{
 ivySE: SummarizedExperiment for IvyGAP expression data and metadata
