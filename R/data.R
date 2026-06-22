@@ -79,8 +79,8 @@ data.frame(
 }
 
 #' provide access to a limma analysis of RNA-seq profiles for reference histology samples
-#' @importFrom utils download.file
-#' @note Uses \code{\link[utils]{download.file}} to acquire RDS of the output
+#' @import BiocFileCache
+#' @note Uses BiocFileCache::bfcadd to acquire RDS of the output
 #' of \code{\link[limma]{eBayes}} from a public S3 bucket.  The limma model
 #' was fit using \code{\link[limma]{duplicateCorrelation}} to address multiplicity
 #' of contributions per donor.  Comparisons are to samples labeled \code{CT-reference} (cellular tumor, reference contributions),
@@ -88,15 +88,26 @@ data.frame(
 #' CT-pan (pseudopalisading cells around necrosis), IT (infiltrating tumor),
 #' and LE (leading edge), respectively.
 #' @return an instance of \code{\link[limma]{MArrayLM-class}} representing regularized gene-wise ANOVAs
+#' @param
+#' @return an instance of \code{\link[limma:marraylm]{MArrayLM-class}} representing regularized gene-wise ANOVAs
 #' @examples
 #' requireNamespace("limma")
 #' ebout = getRefLimma() # is result of eBayes
 #' colnames(ebout$coef)
 #' limma::topTable(ebout,2)
 #' @export
-getRefLimma = function() {
+getRefLimma = function(cache=BiocFileCache::BiocFileCache()) {
  if (!requireNamespace("limma")) stop("install limma to use this function")
- tf = tempfile()
- download.file("https://s3.amazonaws.com/bcfound-itcr/histoLimma.rds", tf, mode="wb")
- readRDS(tf)
+ chk = bfcquery(cache, "histoLimma")$rpath 
+ if (length(chk)==0) chk = try(bfcadd(cache, fpath="https://s3.amazonaws.com/bcfound-itcr/histoLimma.rds", rname="histoLimma"))
+ if (inherits(chk, "try-error")) stop("could not add histoLimma.rds to cache")
+ readRDS( bfcquery(cache, "histoLimma")$rpath[1] )
 }
+
+#' details on image quantification results with ISH
+#' @docType data
+#' @source \url{http://glioblastoma.alleninstitute.org/api/v2/gbm/gene_expression_details.csv}
+#' @examples
+#' data(ish_stem_details)
+#' names(ish_stem_details)
+"ish_stem_details"
