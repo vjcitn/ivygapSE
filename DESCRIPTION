@@ -1,16 +1,28 @@
 Package: ivygapSE
 Title: A SummarizedExperiment for Ivy-GAP data
 Description: Define a SummarizedExperiment and exploratory app for Ivy-GAP glioblastoma image, expression, and clinical data.
-Version: 1.13.7
+Version: 1.35.1
 Author: Vince Carey
-Suggests: knitr, png, limma, grid, DT, randomForest, digest, testthat, rmarkdown
+Suggests: 
+    knitr,
+    png,
+    limma,
+    grid,
+    DT,
+    randomForest,
+    digest,
+    testthat,
+    rmarkdown,
+    BiocStyle, magick, statmod, codetools
 Depends: R (>= 3.5.0), SummarizedExperiment
 Imports: shiny, survival, survminer, hwriter, plotly, ggplot2, S4Vectors,
-	graphics, stats, utils, UpSetR, BiocFileCache
+	graphics, stats, utils
 Maintainer: VJ Carey <stvjc@channing.harvard.edu>
 License: Artistic-2.0
 LazyLoad: yes
 biocViews: Transcription, Software, Visualization, Survival, GeneExpression, Sequencing
+VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Encoding: UTF-8
