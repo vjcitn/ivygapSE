@@ -98,9 +98,11 @@ nomenclat()
 # Additional details
 
 We have used information in the
-[IvyGAP technical white paper](http://help.brain-map.org/display/glioblastoma/Documentation?preview=/8028197/8454231/IvyOverview.pdf) to
+[IvyGAP technical white paper](https://community.brain-map.org/uploads/short-url/jGLtQaClvGNAbZ7EJUoAGTmSTq9.pdf) to
 spell out additional background on the data underlying the app and
 SummarizedExperiment.
+
+An [API dedicated to IvyGAP](https://community.brain-map.org/t/api-for-ivy-glioblastoma-atlas-project/3041) is available.
 
 ## Basic experimental design layout
 
